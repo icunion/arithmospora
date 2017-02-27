@@ -164,7 +164,7 @@ Arithmospora is written in [Go](https://golang.org/). Install to your go
 workspace as follows:
 
 ```
-go install github.com/icunion/arithmospora/...
+go get github.com/icunion/arithmospora/...
 ```
 
 ### Configuration
