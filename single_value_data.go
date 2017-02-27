@@ -43,7 +43,11 @@ func (svdl *SingleValueDataLoaderRedis) FetchData() (int, error) {
 	conn := RedisPool().Get()
 	defer conn.Close()
 
-	return redis.Int(conn.Do("GET", svdl.MakeKey("data")))
+	data, err := redis.Int(conn.Do("GET", svdl.MakeKey("data")))
+	if err != nil && err != redis.ErrNil {
+		return 0, err
+	}
+	return data, nil
 }
 
 func (svdl *SingleValueDataLoaderRedis) Load(stat *Stat) (StatData, error) {
