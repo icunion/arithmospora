@@ -176,6 +176,8 @@ func (s *Stat) ListenForUpdates(min time.Duration, max time.Duration, errors cha
 }
 
 func (s *Stat) RegisterListener(listener chan<- bool) {
+	s.Lock()
+	defer s.Unlock()
 	s.listeners = append(s.listeners, listener)
 }
 

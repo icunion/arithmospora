@@ -7,17 +7,21 @@ import (
 )
 
 type Source struct {
-	Name           string
-	IsLive         bool
-	Available      map[string][]string
-	Stats          map[string]map[string]*Stat
-	updatesCountMu sync.Mutex
-	updatesCount   int
+	Name              string
+	IsLive            bool
+	Available         map[string][]string
+	Stats             map[string]map[string]*Stat
+	Milestones        []*MilestoneCollection
+	updatesCountMu    sync.Mutex
+	updatesCount      int
+	milestonesCountMu sync.Mutex
+	milestonesCount   int
 }
 
 func (s *Source) Publish(hub *Hub, errors chan<- error) error {
 	debounce := Config.Debounce
 
+	// Publish stats
 	for sg, stats := range s.Stats {
 		statGroup := sg
 		for sk, st := range stats {
@@ -51,6 +55,25 @@ func (s *Source) Publish(hub *Hub, errors chan<- error) error {
 				}
 			}()
 		}
+	}
+
+	// Publish milestones
+	for _, mc := range s.Milestones {
+		milestoneCollection := mc
+		go func() {
+			milestoneAchieved := make(chan *Milestone)
+			milestoneCollection.Publish(milestoneAchieved)
+			for {
+				milestone := <-milestoneAchieved
+				s.IncrementMilestonesCounter()
+				message, err := json.Marshal(Message{Event: "milestone", Payload: *milestone})
+				if err != nil {
+					errors <- err
+					continue
+				}
+				hub.Broadcast <- message
+			}
+		}()
 	}
 
 	return nil
@@ -105,5 +128,19 @@ func (s *Source) PopUpdatesCounter() (poppedCount int) {
 	poppedCount = s.updatesCount
 	s.updatesCount = 0
 	s.updatesCountMu.Unlock()
+	return poppedCount
+}
+
+func (s *Source) IncrementMilestonesCounter() {
+	s.milestonesCountMu.Lock()
+	s.milestonesCount++
+	s.milestonesCountMu.Unlock()
+}
+
+func (s *Source) PopMilestonesCounter() (poppedCount int) {
+	s.milestonesCountMu.Lock()
+	poppedCount = s.milestonesCount
+	s.milestonesCount = 0
+	s.milestonesCountMu.Unlock()
 	return poppedCount
 }

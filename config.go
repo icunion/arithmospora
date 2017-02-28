@@ -35,6 +35,7 @@ type SourceConfig struct {
 	IsLive           bool
 	TimedStatPeriods []Period
 	Stats            StatGroupConfig
+	Milestones       []MilestoneConfig
 }
 
 type StatGroupConfig struct {
@@ -49,6 +50,13 @@ type StatConfig struct {
 	Period     string
 	DataType   string
 	LoaderType string
+}
+
+type MilestoneConfig struct {
+	Name       string
+	Group      string
+	Stat       string
+	Milestones []*Milestone
 }
 
 var Config tomlConfig
@@ -126,6 +134,21 @@ func MakeSourcesFromConfig(config tomlConfig) (sources []*Source) {
 			}
 			source.Available["other"] = append(source.Available["other"], statKey)
 			source.Stats["other"][statKey] = stat
+		}
+
+		// Milestones
+		for _, milestoneConfig := range sourceConfig.Milestones {
+			// Skip milestone if corresponding stat not found
+			if source.Stats[milestoneConfig.Group] == nil || source.Stats[milestoneConfig.Group][milestoneConfig.Stat] == nil {
+				continue
+			}
+
+			milestoneCollection := &MilestoneCollection{
+				Name:       milestoneConfig.Name,
+				Stat:       source.Stats[milestoneConfig.Group][milestoneConfig.Stat],
+				Milestones: milestoneConfig.Milestones,
+			}
+			source.Milestones = append(source.Milestones, milestoneCollection)
 		}
 
 		sources = append(sources, &source)

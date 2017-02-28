@@ -156,6 +156,29 @@ key/value pairs with each key corresponding to a time bucket of fixed size.
 The collection of buckets provide a time series of data, such as number of
 vote cast in successive five minute periods.
 
+### Milestones
+
+Milestones are events which occur when particular conditions are met. For
+example, a milestone can be configured to generate a message when the number
+of voters in an election reaches 1000, or the percentage turnout of
+Postgraduate Taught students reaches 20%.
+
+Milestones are grouped into collections relating to a particular base stat.
+The milestones themselves can either refer to that stat or a particular data
+poiint within that stat. Milestones compare a piece of data from the given stat
+or datapoint to a target value. The comparison is checked each time the stat
+updates; when the comparison becomes true for the first time the milestone
+becomes achieved, and a `milestone` event is broadcast to clients.
+
+The payload of milestone events is as per the `Milestone` struct, with the
+primary field of interest to clients being the message, which can then be
+shown to users on screen, embedded in a tweet, etc.
+
+Once a milestone has been achieved it is flagged as such so that it does not
+get resent on a subsequent stat update. All milestones are initially checked
+on startup to ensure previously met targets are not resent if the program is
+stopped and later restarted.
+
 ## Installation and usage
 
 ### Installation

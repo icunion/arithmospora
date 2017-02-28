@@ -59,7 +59,7 @@ func main() {
 			for {
 				select {
 				case <-tickerLog.C:
-					log.Printf("Source '%s': %v clients; %v updates", source.Name, sourceHub.ClientCount(), source.PopUpdatesCounter())
+					log.Printf("Source '%s': %v clients; %v updates; %v milestones", source.Name, sourceHub.ClientCount(), source.PopUpdatesCounter(), source.PopMilestonesCounter())
 				case <-tickerRefresh.C:
 					if source.IsLive {
 						log.Printf("Source '%s': periodic refresh", source.Name)

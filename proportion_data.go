@@ -48,6 +48,18 @@ func (pd *ProportionData) String() string {
 	return fmt.Sprintf("current: %v, total: %v, proportion: %v, percentage: %v (%s)", pd.Current, pd.Total, pd.Proportion(), pd.Percentage(), pd.dataLoader)
 }
 
+func (pd *ProportionData) MilestoneValue(field string) float64 {
+	switch field {
+	case "current":
+		return float64(pd.Current)
+	case "proportion":
+		return pd.Proportion()
+	case "percentage":
+		return pd.Percentage()
+	}
+	return 0.0
+}
+
 type ProportionDataLoaderRedis struct {
 	RedisKeyMaker
 }

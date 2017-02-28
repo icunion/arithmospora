@@ -35,6 +35,10 @@ func (svd *SingleValueData) Refresh() error {
 	return nil
 }
 
+func (svd *SingleValueData) MilestoneValue(string) float64 {
+	return float64(svd.Data)
+}
+
 type SingleValueDataLoaderRedis struct {
 	RedisKeyMaker
 }

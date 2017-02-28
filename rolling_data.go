@@ -63,6 +63,19 @@ func (rd *RollingData) String() string {
 		rd.dataLoader)
 }
 
+func (rd *RollingData) MilestoneValue(field string) float64 {
+	switch field {
+	case "peak":
+		return float64(rd.Peak)
+	case "peakProportion":
+		return rd.PeakProportion()
+	case "peakPewrcentage":
+		return rd.PeakPercentage()
+	default:
+		return rd.ProportionData.MilestoneValue(field)
+	}
+}
+
 type RollingDataLoaderRedis struct {
 	RedisKeyMaker
 }

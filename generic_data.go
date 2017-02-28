@@ -35,6 +35,10 @@ func (gd *GenericData) Refresh() error {
 	return nil
 }
 
+func (gd *GenericData) MilestoneValue(field string) float64 {
+	return float64(gd.Data[field])
+}
+
 type GenericDataLoaderRedis struct {
 	RedisKeyMaker
 }
