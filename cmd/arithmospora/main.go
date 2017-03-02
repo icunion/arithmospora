@@ -44,7 +44,7 @@ func main() {
 		sourceHub := as.NewHub(source)
 		go sourceHub.Run()
 		http.HandleFunc("/"+source.Name, func(w http.ResponseWriter, r *http.Request) {
-			as.ServeWs(sourceHub, w, r)
+			as.ServeWs(sourceHub, w, r, errors)
 		})
 
 		// Publish source

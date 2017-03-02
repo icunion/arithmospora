@@ -97,7 +97,12 @@ func (s *Source) SendInitialDataTo(client *Client) error {
 	if err != nil {
 		return err
 	}
-	client.send <- available
+	select {
+	case <-client.closed:
+		return nil
+	default:
+		client.send <- available
+	}
 
 	// Send initial data after a short delay to allow the client time to
 	// process available stats and set up listeners
@@ -109,7 +114,12 @@ func (s *Source) SendInitialDataTo(client *Client) error {
 				if err != nil {
 					continue
 				}
-				client.send <- message
+				select {
+				case <-client.closed:
+					return
+				default:
+					client.send <- message
+				}
 			}
 		}
 	}()

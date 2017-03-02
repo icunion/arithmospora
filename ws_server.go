@@ -6,8 +6,10 @@ package arithmospora
  */
 
 import (
+	"fmt"
 	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 )
@@ -61,6 +63,7 @@ func (h *Hub) Run() {
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
+				close(client.closed)
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
@@ -68,6 +71,7 @@ func (h *Hub) Run() {
 				select {
 				case client.send <- message:
 				default:
+					close(client.closed)
 					close(client.send)
 					delete(h.clients, client)
 				}
@@ -81,9 +85,11 @@ func (h *Hub) ClientCount() int {
 }
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	hub    *Hub
+	conn   *websocket.Conn
+	send   chan []byte
+	closed chan struct{}
+	errors chan<- error
 }
 
 // Readpump handles client Pong messages and loops to disregard client messages
@@ -119,6 +125,9 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
+			if !utf8.Valid(message) {
+				c.errors <- fmt.Errorf("Invalid UTF8 byte sequence in message: %s", message)
+			}
 			c.conn.SetWriteDeadline(time.Now().Add(time.Duration(websocketConfig.WriteWait) * time.Second))
 			if !ok {
 				// Hub closed channel
@@ -138,12 +147,12 @@ func (c *Client) writePump() {
 }
 
 // ServeWs handles websocket requests from the peer.
-func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request, errors chan<- error) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), closed: make(chan struct{}), errors: errors}
 	client.hub.register <- client
 	go client.writePump()
 	client.readPump()
