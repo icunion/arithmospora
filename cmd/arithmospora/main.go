@@ -38,7 +38,8 @@ func main() {
 	}()
 
 	// Set up websocket handlers per source
-	for _, source := range sources {
+	for _, s := range sources {
+		source := s
 		log.Printf("Publishing source '%s'", source.Name)
 		// Create Hub and run
 		sourceHub := as.NewHub(source)
