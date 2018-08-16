@@ -130,7 +130,7 @@ Proportion stats have the following fields:
 * `proportion`
 * `percentage`
 
-For eaxample:
+For example:
 
 ```
 {
@@ -165,7 +165,7 @@ Postgraduate Taught students reaches 20%.
 
 Milestones are grouped into collections relating to a particular base stat.
 The milestones themselves can either refer to that stat or a particular data
-poiint within that stat. Milestones compare a piece of data from the given stat
+point within that stat. Milestones compare a piece of data from the given stat
 or datapoint to a target value. The comparison is checked each time the stat
 updates; when the comparison becomes true for the first time the milestone
 becomes achieved, and a `milestone` event is broadcast to clients.
@@ -217,10 +217,10 @@ Arithmospora was created by [Imperial College
 Union](https://www.imperialcollegeunion.org) for its live election
 statistics to replace a previous [Socket.IO](https://socket.io) system,
 which worked by polling a data output script and distributing the results to
-clients.  The first use of Arithmospora is to be the [Leadership Elections
+clients.  The first use of Arithmospora was the [Leadership Elections
 2017 Live
 Statistics](https://www.imperialcollegeunion.org/leadership-elections-2017/stats/dashboard).
 
-Copyright (c) 2017 Imperial College Union
+Copyright (c) 2017-2018 Imperial College Union
 
 License: [MIT](https://opensource.org/licenses/MIT)
