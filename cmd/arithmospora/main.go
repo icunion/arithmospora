@@ -72,9 +72,17 @@ func main() {
 	}
 
 	// Launch server
-	https := as.Config.Https
-	err := http.ListenAndServeTLS(https.Address, https.Cert, https.Key, nil)
-	if err != nil {
-		log.Fatal("ListenAndServeTLS: ", err)
+	if httpsConf := as.Config.Https; httpsConf.Address != "" {
+		err := http.ListenAndServeTLS(httpsConf.Address, httpsConf.Cert, httpsConf.Key, nil)
+		if err != nil {
+			log.Fatal("ListenAndServeTLS: ", err)
+		}
+	} else if httpConf := as.Config.Http; httpConf.Address != "" {
+		err := http.ListenAndServe(httpConf.Address, nil)
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+	} else {
+		log.Fatal("Missing or bad http or htps section in configuration")
 	}
 }

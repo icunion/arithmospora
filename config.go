@@ -10,10 +10,15 @@ import (
 
 type tomlConfig struct {
 	Redis     RedisConfig
+	Http      HttpConfig
 	Https     HttpsConfig
 	Websocket WebsocketConfig
 	Debounce  DebounceConfig
 	Sources   []SourceConfig
+}
+
+type HttpConfig struct {
+	Address string
 }
 
 type HttpsConfig struct {
