@@ -10,12 +10,13 @@ import (
 
 type RedisConfig struct {
 	Server      string
+	Password    string
 	DB          int
 	MaxIdle     int
 	IdleTimeout int
 }
 
-var redisConfig = RedisConfig{Server: ":6379", DB: 1, MaxIdle: 3, IdleTimeout: 240}
+var redisConfig = RedisConfig{Server: ":6379", Password: "", DB: 1, MaxIdle: 3, IdleTimeout: 240}
 var redisPool *redis.Pool
 
 func SetRedisConfig(config RedisConfig) {
@@ -33,6 +34,12 @@ func RedisPool() *redis.Pool {
 				c, err := redis.Dial("tcp", redisConfig.Server)
 				if err != nil {
 					return nil, err
+				}
+				if redisConfig.Password != "" {
+					if _, err := c.Do("AUTH", redisConfig.Password); err != nil {
+						c.Close()
+						return nil, err
+					}
 				}
 				if _, err := c.Do("SELECT", redisConfig.DB); err != nil {
 					c.Close()
