@@ -211,6 +211,13 @@ by being invoked with `-help`.  The commands are:
 * `aswatch` - prints stats to stdout when they update; continues to run
   until aborted.
 
+## Deployment
+
+The `arithmospora` command can be run as a daemon under systemd: an example
+systemd unit is provided which assumes the binary is installed under
+`/opt/arithmospora/bin` with a configuration file located at
+`/etc/arithmospora/arithmospora.conf`
+
 ## About
 
 Arithmospora was created by [Imperial College

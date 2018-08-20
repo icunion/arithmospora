@@ -1,0 +1,14 @@
+[Unit]
+Description=Arithmospora: broadcasts stats data to connected clients using websockets
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/opt/arithmospora/bin/arithmospora -c /etc/arithmospora/arithmospora.conf
+WatchdogSec=30s
+Restart=on-failure
+User=arithmospora
+Group=arithmospora
+
+[Install]
+WantedBy=multi-user.target

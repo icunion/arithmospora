@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"time"
+
+	"github.com/coreos/go-systemd/daemon"
 
 	as "github.com/icunion/arithmospora"
 )
@@ -53,7 +56,7 @@ func main() {
 			log.Fatal("source.Publish: ", err)
 		}
 
-		// Perform period tasks Periodically log number of connected clients and updates count
+		// Perform periodic tasks: Periodically log number of connected clients and updates count
 		tickerLog := time.NewTicker(10 * time.Second)
 		tickerRefresh := time.NewTicker(120 * time.Second)
 		go func() {
@@ -71,18 +74,44 @@ func main() {
 		}()
 	}
 
-	// Launch server
-	if httpsConf := as.Config.Https; httpsConf.Address != "" {
-		err := http.ListenAndServeTLS(httpsConf.Address, httpsConf.Cert, httpsConf.Key, nil)
-		if err != nil {
-			log.Fatal("ListenAndServeTLS: ", err)
-		}
-	} else if httpConf := as.Config.Http; httpConf.Address != "" {
-		err := http.ListenAndServe(httpConf.Address, nil)
-		if err != nil {
-			log.Fatal("ListenAndServe: ", err)
-		}
+	// Determine server address
+	address := ""
+	if as.Config.Https.Address != "" {
+		address = as.Config.Https.Address
+	} else if as.Config.Http.Address != "" {
+		address = as.Config.Http.Address
 	} else {
-		log.Fatal("Missing or bad http or htps section in configuration")
+		log.Fatal("Missing adress in configuration http or https section")
+	}
+
+	// Open socket
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		log.Fatal("Cannot open listener: ", err)
+	}
+
+	// Notify systemd ready
+	daemon.SdNotify(false, daemon.SdNotifyReady)
+
+	// Setup systemd watchdog to periodically send keepalives
+	go func() {
+		interval, err := daemon.SdWatchdogEnabled(false)
+		if err != nil || interval == 0 {
+			return
+		}
+		// TODO: Add cleverness to actually monitor program is
+		// working as expected
+		for {
+			daemon.SdNotify(false, daemon.SdNotifyWatchdog)
+			time.Sleep(interval / 2)
+		}
+	}()
+
+	// Launch server
+	https := as.Config.Https
+	if https.Cert != "" && https.Key != "" {
+		log.Fatal(http.ServeTLS(listener, nil, https.Cert, https.Key))
+	} else {
+		log.Fatal(http.Serve(listener, nil))
 	}
 }
